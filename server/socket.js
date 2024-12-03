@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const { GAME_STATES, getNextState } = require('./utils/fsa');
+const { questions} = require('./questionData/questions');
 
 // Initialize Express properties
 const app = express();
@@ -23,8 +24,71 @@ const io = new Server(server, {
 
 // Fetches player count and emits to room
 const updatePlayerCount = (roomName) => {
-    const playerCount = Object.keys(rooms[roomName].clients).length;
+    const clients = rooms[roomName].clients;
+    const playerCount = Object.keys(clients).filter((clientId) => !clients[clientId].isAdmin).length;
     io.to(roomName).emit('playerCountUpdated', playerCount);
+};
+
+const SCORE_VALUES = {
+    'multipleChoice': 250,
+    'numeric': 1000, // 1000 for top score, 100 less per placement down from top, min of 0
+}
+
+// Updates scores and emits to room
+const updateScores = (roomName, questionNum) => {
+    const currQuestion = rooms[roomName].gamedata.currQuestion;
+    const correctAnswer = currQuestion.questionType == 'multipleChoice' ? currQuestion.potentialAnswers[currQuestion.answer]:  currQuestion.answer;
+    const questionKey = `question_${questionNum}`;
+    const questionAnswers = rooms[roomName].gamedata?.questionData?.[questionKey]?.answers || {};
+    const scores = rooms[roomName].gamedata.scores || {};
+    const questionPointGain = rooms[roomName].gamedata.questionPointGain || {};
+
+    if (currQuestion.questionType == 'multipleChoice') {
+        Object.keys(questionAnswers).forEach((clientId) => {
+            const answer = questionAnswers[clientId];
+            const prevScore = scores[clientId] || 0;
+            if (answer === correctAnswer) {
+                const pointsGained = SCORE_VALUES[currQuestion.questionType]
+                scores[clientId] = prevScore + pointsGained;
+                questionPointGain[clientId] = pointsGained;
+            } else {
+                scores[clientId] = prevScore;
+                questionPointGain[clientId] = 0;
+            }
+        });
+    } else if (currQuestion.questionType === 'numeric') {
+        // TODO: @Andrew need to resolve ties properly
+        const answerResults = Object.keys(questionAnswers).map((clientId) => {
+            const answer = questionAnswers[clientId];
+            const absoluteDifference = Math.abs(answer - correctAnswer);
+            const prevScore = scores[clientId] || 0;
+            return {
+                clientId,
+                absoluteDifference,
+                prevScore,
+            };
+        }).sort((a, b) => a.absoluteDifference - b.absoluteDifference);
+
+        let currentRank = 0;
+        let previousDifference = -1;
+
+        answerResults.forEach((answerResult, index) => {
+            const clientId = answerResult.clientId;
+            if (answerResult.absoluteDifference !== previousDifference) {
+                currentRank = index;
+                previousDifference = answerResult.absoluteDifference;
+            }
+            const pointsGained = Math.max(SCORE_VALUES[currQuestion.questionType] - (currentRank * 100), 0);
+            scores[clientId] = answerResult.prevScore + pointsGained;
+            questionPointGain[clientId] = pointsGained;
+        });
+
+        console.log("AnswerResults", answerResults);
+        console.log("AnsewrResults", answerResults);
+    }
+    rooms[roomName].gamedata.scores = scores;
+    rooms[roomName].gamedata.questionPointGain = questionPointGain;
+    io.to(roomName).emit('gamedataUpdated', rooms[roomName].gamedata);
 };
 
 // Generates ID for client
@@ -41,6 +105,7 @@ io.on('connection', (socket) => {
                 gamedata: {
                     gamestate: GAME_STATES.LOBBY,
                     questionNum: 0,
+                    scores: {},
                 },
                 clients: {}
             };
@@ -121,7 +186,17 @@ io.on('connection', (socket) => {
         if (client && client.isAdmin) {
             const nextState = getNextState(rooms[roomName].gamedata.gamestate, rooms[roomName].gamedata.questionNum);
             if (nextState === GAME_STATES.QUESTION) {
+                const mountNewQuestionData = () => {
+                    const questionIndex = rooms[roomName].gamedata.questionNum;
+                    const maxIndex = questions.length - 1;
+                    rooms[roomName].gamedata.currQuestion = questions[Math.min(questionIndex, maxIndex)];
+                };
+
+                mountNewQuestionData();
                 rooms[roomName].gamedata.questionNum += 1;
+                rooms[roomName].gamedata.questionPointGain = {};
+            } else if (nextState === GAME_STATES.ANSWER) {
+                updateScores(roomName, rooms[roomName].gamedata.questionNum);
             }
 
             rooms[roomName].gamedata.gamestate = nextState;
@@ -142,10 +217,11 @@ io.on('connection', (socket) => {
 
             // Ensure that questionData exists for the current question number
             if (!questionData[questionKey]) {
-                questionData[questionKey] = {};
+                questionData[questionKey] = {"answers": {}};
             }
 
-            questionData[questionKey][clientId] = answer;
+            console.log(JSON.stringify(questionData));
+            questionData[questionKey]["answers"][clientId] = answer;
             rooms[roomName].gamedata.questionData = questionData;
 
             io.to(roomName).emit('gamedataUpdated', rooms[roomName].gamedata);
@@ -155,7 +231,6 @@ io.on('connection', (socket) => {
             console.log('Unauthorized answer submission attempt');
         }
     });
-
 });
 
 server.listen(port, () => {

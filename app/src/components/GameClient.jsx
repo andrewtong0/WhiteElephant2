@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import AnswerInput from './AnswerInput';
+import { ThemeProvider } from '@emotion/react';
+import { createTheme } from '@mui/material';
 
 const GameClient = () => {
     const [socket, setSocket] = useState(null);
@@ -10,7 +13,6 @@ const GameClient = () => {
     const [playerCount, setPlayerCount] = useState(0);
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState(null);
-    const [answer, setAnswer] = useState('');
 
     const roomName = 'gameRoom1';
 
@@ -57,15 +59,10 @@ const GameClient = () => {
         }
     }, [socket]);
 
-    const handleChange = (event) => {
-        setAnswer(event.target.value);
-    };
-
-    const handleSubmit = () => {
-        if (answer.trim()) {
+    const handleSubmit = (answer) => {
+        if (answer) {
             // Emit the 'submitAnswer' event to the server with the current answer
             socket.emit('submitAnswer', { roomName, clientId, answer });
-            setAnswer(''); // Clear the input field after submitting
         } else {
             alert('Please enter an answer before submitting.');
         }
@@ -119,15 +116,27 @@ const GameClient = () => {
         }
     }
 
+    const darkTheme = createTheme({
+        palette: {
+          mode: 'dark',
+        },
+      });
+
     return (
-        <div>
+        <ThemeProvider theme={darkTheme}>
             <h1>React Socket.IO Client</h1>
             {isConnected ? (
                 <div>
                     <p>Nickname: {nickname}</p>
                     <p>Admin Status: {isAdmin ? 'Admin' : 'Player'}</p>
                     <p>Client ID: {clientId || 'Waiting for ID...'}</p>
-                    <p>Gamedata: {gamedata ? JSON.stringify(gamedata) : 'Waiting for updates...'}</p>
+                    <p>Score: {gamedata?.scores?.[clientId] || 0}</p>
+                    {
+                        gamedata?.questionPointGain?.[clientId] !== undefined && (
+                            <p style={{ color: gamedata?.questionPointGain?.[clientId] > 0 ? 'green' : 'red' }}>+{gamedata?.questionPointGain?.[clientId]}</p>
+                        )
+                    }
+                    <div style={{textAlign: 'left', fontSize: '14px'}}>Gamedata: {gamedata ? <pre>{JSON.stringify(gamedata, null, 2)}</pre> : 'Waiting for updates...'}</div>
                     <p>Players Connected: {playerCount}</p>
                     {isAdmin && (<>
                         <button onClick={advanceGameState}>Advance Game State</button>
@@ -137,16 +146,7 @@ const GameClient = () => {
                     <button onClick={handleDisconnect}>Disconnect and Remove</button>
                     {
                         gamedata?.gamestate === "QUESTION" && (
-                            <div>
-                                <h3>Submit Your Answer</h3>
-                                <input
-                                    type="text"
-                                    value={answer}
-                                    onChange={handleChange}
-                                    placeholder="Type your answer here"
-                                />
-                                <button onClick={handleSubmit}>Submit Answer</button>
-                            </div>
+                            <AnswerInput gamedata={gamedata} handleSubmit={handleSubmit} />
                         )
                     }
                 </div>
@@ -171,7 +171,7 @@ const GameClient = () => {
                     <button onClick={handleJoinRoom}>Join Room</button>
                 </div>
             )}
-        </div>
+        </ThemeProvider>
     );
 };
 
