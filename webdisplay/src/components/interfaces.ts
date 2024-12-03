@@ -17,7 +17,7 @@ export interface GradientColour {
 export interface ColourGradient {
   colour1: GradientColour | string;
   colour2: GradientColour | string;
-  blendingMode: 'original' | 'screen' | 'overlay' | 'difference';
+  blendingMode: string;
 }
 
 export interface NumericQuestion {
@@ -25,14 +25,14 @@ export interface NumericQuestion {
   answer: number;
   upperLimit: number;
   lowerLimit: number;
-  type: QuestionType.NUMERIC;
+  type: string;
   backgroundColor: ColourGradient;
 }
 
 export interface NonNumericQuestion {
   questionText: string;
   answer: string;
-  type: QuestionType.MULTIPLE_CHOICE | QuestionType.SURVEY;
+  type: string;
   backgroundColor: ColourGradient;
 }
 

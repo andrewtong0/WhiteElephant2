@@ -1,43 +1,77 @@
 import React from 'react';
 import { Answer } from '../interfaces';
-import { render } from '@testing-library/react';
 import { Grid } from '@mui/material';
+import { motion } from 'motion/react';
 
 interface NumericAnswerDisplayProps {
   answers: Answer[];
 }
 
-const NumericAnswerDisplay: React.FC<NumericAnswerDisplayProps> = ({ answers }) => {
-  const numColumns = Math.ceil(answers.length / 10);
+const gridStyling = {
+  borderRadius: "20px",
+  padding: "0 20px 0 20px",
+  fontFamily: "Trebuchet MS, sans-serif",
+  color: "white",
+  textShadow: "2px 2px 2px rgba(0,0,0,0.5)",
+  marginBottom: "2px",
+}
 
+const NumericAnswerDisplay: React.FC<NumericAnswerDisplayProps> = ({ answers }) => {
   const renderAnswers = () => {
     const sortedAnswers = [...answers].sort((a, b) => b.pointsGained - a.pointsGained);
-    const columns = [];
-    for (let i = 0; i < numColumns; i++) {
-      columns.push(
+    return (
+      <Grid container direction="row" spacing={0.25}>
         <Grid item>
-          <Grid container direction="column" spacing={2} key={i} style={{ marginTop: `${30*i}px` }}>
-            {generateColumn(sortedAnswers, i)}
+          <Grid container direction="column">
+            {sortedAnswers.map((answer, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: "-15%" }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <Grid
+                  container
+                  justifyContent={"space-between"}
+                  alignItems={"center"}
+                  style={{
+                    ...gridStyling,
+                    background: "radial-gradient(ellipse at top, #F7DC6F 0%, #F7DC6F 56%, #F2C464 56%, #F2C464 100%)"
+                  }}
+                >
+                  <Grid item style={{ fontSize: "20px" }}>{answer.placement}</Grid>
+                  <Grid item style={{ padding: "0 15px" }}>{answer.user.name}</Grid>
+                  <Grid item>{answer.answerValue}</Grid>
+                </Grid>
+              </motion.div>
+            ))}
           </Grid>
         </Grid>
-      );
-    }
-    return <Grid container spacing={4}>
-      {columns}
-    </Grid>
-  }
-
-  const generateColumn = (sortedAnswers: Answer[], columnIndex: number) => {
-    const answersInColumn = sortedAnswers.filter((answer, index) => index % numColumns === columnIndex);
-    return answersInColumn.map((answer, index) => (
-      <Grid item key={index}>
-        <Grid container justifyContent={"space-between"} alignItems={"center"} spacing={5}>
-          <Grid item style={{ fontSize: "20px" }}>{answer.placement}</Grid>
-          <Grid item>{answer.user.name}</Grid>
-          <Grid item>{answer.pointsGained}</Grid>
+        <Grid item>
+          <Grid container direction="column" spacing={0.25}>
+            {sortedAnswers.map((answer, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: "-15%" }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <Grid
+                  container
+                  justifyContent={"flex-end"}
+                  alignItems={"center"}
+                  style={{
+                    ...gridStyling,
+                  }}
+                >
+                  <Grid item>+{answer.pointsGained}</Grid>
+                </Grid>
+              </motion.div>
+            ))}
+          </Grid>
         </Grid>
       </Grid>
-    ));
+    );
   }
 
   return (

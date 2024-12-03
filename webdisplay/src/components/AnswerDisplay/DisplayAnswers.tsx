@@ -12,9 +12,7 @@ const AnswerDisplay: React.FC<AnswerDisplayProps> = ({question, answers, correct
   const renderAnswers = () => {
     switch (question.type) {
       case QuestionType.NUMERIC:
-        return <NumericAnswerDisplay
-          answers={answers}
-        />;
+        return <NumericAnswerDisplay answers={answers} />;
       default:
         return <>No question selected</>;
     }
