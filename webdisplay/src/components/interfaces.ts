@@ -20,7 +20,7 @@ export interface ColourGradient {
   blendingMode: string;
 }
 
-export interface NumericQuestion {
+export interface NumericQuestionType {
   questionText: string;
   answer: number;
   upperLimit: number;
@@ -29,14 +29,14 @@ export interface NumericQuestion {
   backgroundColor: ColourGradient;
 }
 
-export interface NonNumericQuestion {
+export interface NonNumericQuestionType {
   questionText: string;
   answer: string;
   type: string;
   backgroundColor: ColourGradient;
 }
 
-export type Question = NumericQuestion | NonNumericQuestion;
+export type Question = NumericQuestionType | NonNumericQuestionType;
 
 export interface Answer {
   answerValue: string | number;

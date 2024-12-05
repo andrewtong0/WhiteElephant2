@@ -2,13 +2,13 @@ import React from 'react';
 import { Answer, Question, QuestionType } from '../interfaces';
 import NumericAnswerDisplay from './DisplayNumericAnswers';
 
-interface AnswerDisplayProps {
+interface ScoreDisplayProps {
   question: Question;
   answers: Answer[];
   correctAnswer: any;
 }
 
-const AnswerDisplay: React.FC<AnswerDisplayProps> = ({question, answers, correctAnswer}) => {
+const ScoreDisplay: React.FC<ScoreDisplayProps> = ({question, answers, correctAnswer}) => {
   const renderAnswers = () => {
     switch (question.type) {
       case QuestionType.NUMERIC:
@@ -21,5 +21,5 @@ const AnswerDisplay: React.FC<AnswerDisplayProps> = ({question, answers, correct
   return <>{renderAnswers()}</>;
 };
 
-export default AnswerDisplay;
+export default ScoreDisplay;
 
