@@ -1,22 +1,18 @@
 import React from 'react';
-import { Answer } from '../interfaces';
+import { Answer, QuestionType } from '../../interfaces';
 import { Grid } from '@mui/material';
 import { motion } from 'motion/react';
+import { gridStyling } from '../styles';
+import SinglePlayerDisplay from '../SinglePlayerDisplay';
 
-interface NumericAnswerDisplayProps {
+interface DisplayPointTotalsProps {
   answers: Answer[];
+  questionType: QuestionType;
 }
 
-const gridStyling = {
-  borderRadius: "20px",
-  padding: "0 20px 0 20px",
-  fontFamily: "Trebuchet MS, sans-serif",
-  color: "white",
-  textShadow: "2px 2px 2px rgba(0,0,0,0.5)",
-  marginBottom: "2px",
-}
+const DISPLAY_POINT_TOITALS_DELAY = 2;
 
-const NumericAnswerDisplay: React.FC<NumericAnswerDisplayProps> = ({ answers }) => {
+const DisplayPointTotals: React.FC<DisplayPointTotalsProps> = ({ answers, questionType }) => {
   const renderAnswers = () => {
     const sortedAnswers = [...answers].sort((a, b) => b.pointsGained - a.pointsGained);
     return (
@@ -28,21 +24,9 @@ const NumericAnswerDisplay: React.FC<NumericAnswerDisplayProps> = ({ answers }) 
                 key={index}
                 initial={{ opacity: 0, x: "-15%" }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
+                transition={{ duration: 0.3, delay: index * 0.1 + DISPLAY_POINT_TOITALS_DELAY }}
               >
-                <Grid
-                  container
-                  justifyContent={"space-between"}
-                  alignItems={"center"}
-                  style={{
-                    ...gridStyling,
-                    background: "radial-gradient(ellipse at top, #F7DC6F 0%, #F7DC6F 56%, #F2C464 56%, #F2C464 100%)"
-                  }}
-                >
-                  <Grid item style={{ fontSize: "20px" }}>{answer.placement}</Grid>
-                  <Grid item style={{ padding: "0 15px" }}>{answer.user.name}</Grid>
-                  <Grid item>{answer.answerValue}</Grid>
-                </Grid>
+                <SinglePlayerDisplay answer={answer} questionType={ questionType } />
               </motion.div>
             ))}
           </Grid>
@@ -54,7 +38,7 @@ const NumericAnswerDisplay: React.FC<NumericAnswerDisplayProps> = ({ answers }) 
                 key={index}
                 initial={{ opacity: 0, x: "-15%" }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
+                transition={{ duration: 0.3, delay: index * 0.1 + DISPLAY_POINT_TOITALS_DELAY }}
               >
                 <Grid
                   container
@@ -81,5 +65,5 @@ const NumericAnswerDisplay: React.FC<NumericAnswerDisplayProps> = ({ answers }) 
   );
 };
 
-export default NumericAnswerDisplay;
+export default DisplayPointTotals;
 

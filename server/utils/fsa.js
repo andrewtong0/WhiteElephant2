@@ -1,11 +1,12 @@
 // Define the states and their transitions
 const GAME_STATES = {
-  LOBBY: "LOBBY",
-  QUESTION: "QUESTION",
-  PRE_ANSWER: "PRE_ANSWER",
-  ANSWER: "ANSWER",
-  HALFTIME: "HALFTIME",
-  GAME_END: "GAME_END"
+  LOBBY: "lobby",
+  QUESTION: "question",
+  PRE_ANSWER: "pre_answer",
+  ANSWER: "answer",
+  HALFTIME: "halftime",
+  GAME_END: "game_end",
+  SURVEY: "survey",
 };
 
 // Function to get the next state
@@ -34,6 +35,8 @@ function getNextState(currentState, questionNum) {
       return GAME_STATES.QUESTION;
     case GAME_STATES.GAME_END:
       return GAME_STATES.GAME_END;
+    case GAME_STATES.SURVEY:
+      return GAME_STATES.QUESTION;
     default:
       return GAME_STATES.LOBBY;
   }

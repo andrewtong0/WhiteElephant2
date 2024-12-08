@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import AnswerInput from './AnswerInput';
 import { ThemeProvider } from '@emotion/react';
-import { createTheme } from '@mui/material';
+import { Button, Checkbox, createTheme } from '@mui/material';
 
 const GameClient = () => {
     const [socket, setSocket] = useState(null);
@@ -13,6 +13,7 @@ const GameClient = () => {
     const [playerCount, setPlayerCount] = useState(0);
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState(null);
+    const [timerCheckbox, setTimerCheckbox] = useState(false);
 
     const roomName = 'gameRoom1';
 
@@ -133,19 +134,34 @@ const GameClient = () => {
                     <p>Score: {gamedata?.scores?.[clientId] || 0}</p>
                     {
                         gamedata?.questionPointGain?.[clientId] !== undefined && (
-                            <p style={{ color: gamedata?.questionPointGain?.[clientId] > 0 ? 'green' : 'red' }}>+{gamedata?.questionPointGain?.[clientId]}</p>
+                            <p style={{ color: gamedata?.questionPointGain?.[clientId].questionPointGain > 0 ? 'green' : 'red' }}>+{gamedata?.questionPointGain?.[clientId].questionPointGain}</p>
                         )
                     }
-                    <div style={{textAlign: 'left', fontSize: '14px'}}>Gamedata: {gamedata ? <pre>{JSON.stringify(gamedata, null, 2)}</pre> : 'Waiting for updates...'}</div>
-                    <p>Players Connected: {playerCount}</p>
                     {isAdmin && (<>
-                        <button onClick={advanceGameState}>Advance Game State</button>
-                        <button onClick={updateGamedata}>Update Gamedata</button>
+                        <div style={{textAlign: 'left', fontSize: '14px'}}>Gamedata: {gamedata ? <pre>{JSON.stringify(gamedata, null, 2)}</pre> : 'Waiting for updates...'}</div>
+                        <p>Players Connected: {playerCount}</p>
+                        <div>
+                            <Checkbox checked={timerCheckbox} label="Display Timer" onChange={
+                                (e) => {
+                                    setTimerCheckbox(e.target.checked);
+                                    socket.emit('updateGamedata', { roomName, clientId, newData: { shouldDisplayTimer: e.target.checked } })}
+                                }
+                            />
+                            Display Timer
+                        </div>
+                        <div style={{ marginBottom: '10px' }}>
+                            <Button variant="contained" onClick={advanceGameState} fullWidth>Advance Game State</Button>
+                        </div>
+                        <div style={{ marginBottom: '10px' }}>
+                            <Button variant="contained" onClick={updateGamedata} fullWidth>Force Update Gamedata</Button>
+                        </div>
                     </>)}
                     {error && <p style={{ color: 'red' }}>{error}</p>}
-                    <button onClick={handleDisconnect}>Disconnect and Remove</button>
+                    <div>
+                        <Button fullWidth variant="contained" onClick={handleDisconnect}>Disconnect and Remove</Button>
+                    </div>
                     {
-                        gamedata?.gamestate === "QUESTION" && (
+                        gamedata?.gamestate === "question" && !isAdmin && (
                             <AnswerInput gamedata={gamedata} handleSubmit={handleSubmit} />
                         )
                     }
@@ -168,7 +184,9 @@ const GameClient = () => {
                             Join as Admin
                         </label>
                     </div>
-                    <button onClick={handleJoinRoom}>Join Room</button>
+                    <div>
+                        <Button onClick={handleJoinRoom} variant="contained">Join Game</Button>
+                    </div>
                 </div>
             )}
         </ThemeProvider>

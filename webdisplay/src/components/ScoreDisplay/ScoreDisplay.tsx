@@ -1,24 +1,55 @@
 import React from 'react';
 import { Answer, Question, QuestionType } from '../interfaces';
-import NumericAnswerDisplay from './DisplayNumericAnswers';
+import DisplayPointTotals from './AnswerDisplay/DisplayPointTotals';
+import PotentialPointsMultipleChoice from './PotentialPoints/PotentialPointsMultipleChoice';
+import PotentialPointsNumeric from './PotentialPoints/PotentialPointsNumeric';
 
 interface ScoreDisplayProps {
+  playerCount: number;
   question: Question;
   answers: Answer[];
   correctAnswer: any;
+  displayAnswer: boolean;
 }
 
-const ScoreDisplay: React.FC<ScoreDisplayProps> = ({question, answers, correctAnswer}) => {
-  const renderAnswers = () => {
+const ScoreDisplay: React.FC<ScoreDisplayProps> = ({playerCount, question, answers, correctAnswer, displayAnswer}) => {
+  const renderScores = () => {
     switch (question.type) {
       case QuestionType.NUMERIC:
-        return <NumericAnswerDisplay answers={answers} />;
+        return <DisplayPointTotals answers={answers} questionType={QuestionType.NUMERIC}/>;
+      case QuestionType.MULTIPLE_CHOICE:
+        return <DisplayPointTotals answers={answers} questionType={QuestionType.MULTIPLE_CHOICE}/>;
       default:
         return <>No question selected</>;
     }
   };
 
-  return <>{renderAnswers()}</>;
+  const generateNumericPointScale = (): number[] => {
+    const output: number[] = [];
+    for (let i = 0; i < playerCount; i++) {
+      i === 0 ? output.push(1000) :output.push(Math.max(1000 - (i * 100) - 100, 0));
+    }
+    return output;
+  }
+
+  const renderPotentialPoints = () => {
+    switch (question.type) {
+      case QuestionType.NUMERIC:
+        return <PotentialPointsNumeric pointScale={generateNumericPointScale()}/>;
+      case QuestionType.MULTIPLE_CHOICE:
+        return <PotentialPointsMultipleChoice pointsForRightAnswer={300} pointsForWrongAnswer={0} />;
+      default:
+        return <>No question selected</>;
+    }
+  };
+
+  return <>
+    {
+      displayAnswer ?
+        renderScores() :
+        renderPotentialPoints()
+    }
+  </>;
 };
 
 export default ScoreDisplay;

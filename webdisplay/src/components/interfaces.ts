@@ -8,6 +8,7 @@ export enum QuestionState {
   QUESTION = 'question',
   PRE_ANSWER = 'pre_answer',
   ANSWER = 'answer',
+  HALFTIME = 'half_time',
 }
 
 export interface GradientColour {
@@ -36,13 +37,21 @@ export interface NonNumericQuestionType {
   backgroundColor: ColourGradient;
 }
 
-export type Question = NumericQuestionType | NonNumericQuestionType;
+export interface MultipleChoiceQuestionType {
+  questionText: string;
+  answer: number;
+  type: string;
+  backgroundColor: ColourGradient;
+  options: string[];
+}
+
+export type Question = NumericQuestionType | MultipleChoiceQuestionType | NonNumericQuestionType;
 
 export interface Answer {
   answerValue: string | number;
   pointsGained: number;
   placement: number;
-  type: QuestionType;
+  type: QuestionType | string;
   user: User;
 }
 

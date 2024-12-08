@@ -21,9 +21,9 @@ const AnswerInput = ({ gamedata, handleSubmit }: AnswerInputProps) => {
   return (
     <div>
       <h3>Submit Your Answer</h3>
-      <div>Answer: {answer}</div>
+      <div>Your Answer: {answer}</div>
 
-      {currQuestion.questionType === 'multipleChoice' && (
+      {currQuestion.questionType === 'multiple_choice' && (
         <MultipleChoiceQuestion
           answer={answer}
           setAnswer={setAnswer}

@@ -2,18 +2,19 @@ import React, { useEffect } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
 import { Answer, NumericQuestionType, QuestionState } from '../interfaces';
 import { motion } from 'motion/react';
-import ColouredBackground from '../ColouredBackground';
-import GameTimer from '../GameTimer/GameTimer';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 export interface NumericQuestionProps {
   question: NumericQuestionType;
-  questionState: QuestionState;
   answers: Answer[];
   displayAnswer: boolean;
 }
 
 const ANSWER_DISPLAY_DELAY = 1;
 const CORRECT_ANSWER_DISPLAY_DELAY = 3;
+
+const CIRCLE_SIZE = 25;
 
 const lineCapStyling = {
   width: 40,
@@ -25,7 +26,7 @@ const lineCapStyling = {
 };
 
 export default function NumericQuestion(props: NumericQuestionProps) {
-  const { question, questionState, answers, displayAnswer } = props;
+  const { question, answers, displayAnswer } = props;
   const { questionText, answer } = question;
 
   const calculateValAsPercentage = (answerVal: number) => {
@@ -88,11 +89,11 @@ export default function NumericQuestion(props: NumericQuestionProps) {
   }
 
   const renderAnswers = (): React.ReactElement[] => {
-    return answers.map((answer, index) => {
-      const val = answer.answerValue as number;
+    return answers.map((userAnswer, index) => {
+      const val = userAnswer.answerValue as number;
       return (
         <motion.div
-          key={answer.answerValue}
+          key={userAnswer.answerValue}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, scale: [0, 1.4, 1] }}
           transition={{ duration: 0.3, delay: ANSWER_DISPLAY_DELAY + index * 0.1 }}
@@ -103,7 +104,7 @@ export default function NumericQuestion(props: NumericQuestionProps) {
             alignItems: 'center',
           }}
         >
-          <div style={{ width: 25, height: 25, backgroundColor: 'rgba(255, 0, 0, 0.4)', borderRadius: '50%' }} />
+          <div style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE, backgroundColor: 'rgba(255, 0, 0, 0.4)', borderRadius: '50%' }} />
         </motion.div>
       );
     });
@@ -111,52 +112,62 @@ export default function NumericQuestion(props: NumericQuestionProps) {
 
   const renderCorrectAnswer = () => {
     const correctAnswer = answer as number;
-    const correctAnswerX = calculateValAsPercentage(correctAnswer);
-    return (
-      <motion.div
-        key={correctAnswer}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: CORRECT_ANSWER_DISPLAY_DELAY }}
-        style={{
-          position: 'absolute',
-          left: `calc(${correctAnswerX * 0.91}% + ${subtractLeftElementsForAnswer() - 4}px)`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          marginTop: 100,
-        }}
-      >
+    const LINE_WIDTH = 8;
+
+    const renderPulseWithDelay = (val: number, delay: number) => {
+      return (
         <motion.div
-          initial={{ height: 0 }}
-          animate={{ height: 30 }}
+          animate={{ opacity: [0, 1, 1, 0], scale: [0, 2, 2.2] }}
+          transition={{ duration: 0.5, delay: CORRECT_ANSWER_DISPLAY_DELAY + delay - 0.1 }}
+          style={{
+            position: 'absolute',
+            left: `calc(${calculateValAsPercentage(val) * 0.91}% + ${subtractLeftElements()}px)`,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE, backgroundColor: 'rgba(255, 255, 255, 0.4)', borderRadius: '50%' }} />
+        </motion.div>
+      )
+    }
+
+    return (
+      <>
+        {renderPulseWithDelay(correctAnswer, 0)}
+        <motion.div
+          key={correctAnswer}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: CORRECT_ANSWER_DISPLAY_DELAY }}
           style={{
-            width: 8,
-            backgroundColor: 'black',
+            position: 'absolute',
+            left: `calc(${calculateValAsPercentage(correctAnswer) * 0.91}% + ${subtractLeftElements()}px + ${CIRCLE_SIZE / 2}px - ${LINE_WIDTH / 8}px)`,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            marginTop: 100,
+            transform: `translateX(-50%)`,
           }}
-        />
-        <Typography variant="h5">{correctAnswer}</Typography>
-      </motion.div>
+        >
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: 30 }}
+            transition={{ duration: 0.3, delay: CORRECT_ANSWER_DISPLAY_DELAY }}
+            style={{
+              width: LINE_WIDTH,
+              backgroundColor: 'white',
+            }}
+          />
+          <Typography variant="h5">{correctAnswer}</Typography>
+        </motion.div>
+      </>
     );
   };
 
   return (
     <>
-      <div style={{ marginBottom: "50px" }}>
-        <motion.div
-          animate={{ scale: [0, 1.1, 1] }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-        >
-          <Typography variant="h2" align="center">
-            {questionText}
-          </Typography>
-        </motion.div>
-        <GameTimer initialSeconds={60} />
-      </div>
-
       {
-        displayAnswer &&
+        displayAnswer ?
           <motion.div
             initial={{ height: 0 }}
             animate={{ height: "auto" }}
@@ -189,7 +200,18 @@ export default function NumericQuestion(props: NumericQuestionProps) {
               {renderCorrectAnswer()}
               {renderUpperAndLowerLimits()}
             </Box>
-          </motion.div>
+          </motion.div> :
+          <Grid container justifyContent="center" alignItems="center" spacing={4}>
+            <motion.h2
+              animate={{ opacity: [0, 1] }}
+              transition={{ duration: 2 }}
+            >
+              {question.lowerLimit}
+              <ArrowBackIcon />
+              <ArrowForwardIcon />
+              {question.upperLimit}
+            </motion.h2>
+          </Grid>
       }
     </>
   );
