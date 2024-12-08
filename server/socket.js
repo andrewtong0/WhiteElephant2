@@ -232,7 +232,7 @@ io.on('connection', (socket) => {
         const client = rooms[roomName]?.clients[clientId];
 
         if (client && client.isAdmin) {
-            const nextState = getNextState(rooms[roomName].gamedata.gamestate, rooms[roomName].gamedata.questionNum);
+            let nextState = getNextState(rooms[roomName].gamedata.gamestate, rooms[roomName].gamedata.questionNum);
             if (nextState === GAME_STATES.QUESTION) {
                 const mountNewQuestionData = () => {
                     const questionIndex = rooms[roomName].gamedata.questionNum;
@@ -243,10 +243,32 @@ io.on('connection', (socket) => {
                 mountNewQuestionData();
                 rooms[roomName].gamedata.questionNum += 1;
                 rooms[roomName].gamedata.questionPointGain = {};
+
+                if (rooms[roomName].gamedata.currQuestion.questionType === 'survey') {
+                    nextState = GAME_STATES.SURVEY_QUERY;
+                }
             } else if (nextState === GAME_STATES.ANSWER) {
                 updateScores(roomName, rooms[roomName].gamedata.questionNum);
-            } else if (nextState === GAME_STATES.SURVEY) {
-                
+            } else if (nextState === GAME_STATES.SURVEY_QUESTION) {
+                const consolidateAnswerFromNumericAnswers = (answers) => {
+                    let total = 0;
+                    let numAnswers = 0;
+                    Object.keys(answers).forEach((clientId) => {
+                        total += answers[clientId];
+                        numAnswers += 1;
+                    })
+                    return total / numAnswers;
+                }
+
+                // Mount question with modified answer
+                const questionIndex = rooms[roomName].gamedata.questionNum;
+                const currQuestion = questions[Math.min(questionIndex, questions.length - 1)];
+                const realQuestion = currQuestion.followupQuestion;
+                const answers = rooms[roomName].gamedata?.questionData[`question_${questionIndex}`]?.answers || {}
+                const surveyAnswer = consolidateAnswerFromNumericAnswers(answers);
+                realQuestion.answer = surveyAnswer;
+
+                rooms[roomName].gamedata.currQuestion = realQuestion;
             }
 
             rooms[roomName].gamedata.gamestate = nextState;

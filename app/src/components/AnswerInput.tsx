@@ -36,6 +36,14 @@ const AnswerInput = ({ gamedata, handleSubmit }: AnswerInputProps) => {
         <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} />
       )}
 
+      {currQuestion.questionType === 'survey' && (
+        <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} />
+      )}
+
+      {currQuestion.questionType === 'survey_question' && (
+        <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} />
+      )}
+
       <button onClick={handleAnswerSubmit}>Submit Answer</button>
     </div>
   );

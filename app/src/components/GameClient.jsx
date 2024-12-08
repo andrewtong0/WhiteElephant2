@@ -61,7 +61,7 @@ const GameClient = () => {
     }, [socket]);
 
     const handleSubmit = (answer) => {
-        if (answer) {
+        if (answer !== null && answer !== undefined && answer !== '') {
             // Emit the 'submitAnswer' event to the server with the current answer
             socket.emit('submitAnswer', { roomName, clientId, answer });
         } else {
@@ -161,7 +161,7 @@ const GameClient = () => {
                         <Button fullWidth variant="contained" onClick={handleDisconnect}>Disconnect and Remove</Button>
                     </div>
                     {
-                        gamedata?.gamestate === "question" && !isAdmin && (
+                        (gamedata?.gamestate === "question" || gamedata?.gamestate === "survey_query" || gamedata?.gamestate === "survey_question") && !isAdmin && (
                             <AnswerInput gamedata={gamedata} handleSubmit={handleSubmit} />
                         )
                     }
