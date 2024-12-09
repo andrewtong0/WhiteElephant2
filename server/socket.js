@@ -246,7 +246,7 @@ io.on('connection', (socket) => {
                     const maxIndex = questions.length - 1;
                     rooms[roomName].gamedata.currQuestion = questions[Math.min(questionIndex, maxIndex)];
                 };
-                
+
                 rooms[roomName].gamedata.questionNum += 1;
                 rooms[roomName].gamedata.questionPointGain = {};
                 mountNewQuestionData();
@@ -284,6 +284,17 @@ io.on('connection', (socket) => {
                 const currQuestion = questions[Math.min(questionIndex, questions.length - 1)];
                 const realQuestion = currQuestion.followupQuestion;
                 rooms[roomName].gamedata.currQuestion = realQuestion;
+            } else if (nextState === GAME_STATES.SELECT_POSITIONS) {
+                // Add new gamestate objects
+                const positions = {
+                    pickIndex: 0,
+                    pickOrder: [],
+                    selectOrder: [],
+                };
+                const pickOrder = Object.values(rooms[roomName].gamedata.players).filter(player => !player.isAdmin).sort((a, b) => b.score - a.score);
+                positions.pickOrder = pickOrder
+
+                rooms[roomName].gamedata.positions = positions
             }
 
             rooms[roomName].gamedata.gamestate = nextState;
@@ -335,6 +346,21 @@ io.on('connection', (socket) => {
 
         io.to(roomName).emit('gamedataUpdated', rooms[roomName].gamedata);
         console.log(`Wager submitted by client ${clientId} in room ${roomName}`);
+    });
+
+    socket.on('selectPosition', ({ roomName, clientId, position }) => {
+        const positions = rooms[roomName].gamedata.positions;
+        positions.pickIndex = Math.min(positions.pickIndex + 1, rooms[roomName].gamedata.positions.pickOrder.length - 1);
+        positions.selectOrder.push({
+            clientId,
+            position,
+            nickname: rooms[roomName].gamedata.players[clientId].nickname
+        })
+
+        rooms[roomName].gamedata.positions = positions;
+
+        io.to(roomName).emit('gamedataUpdated', rooms[roomName].gamedata);
+        console.log(`Position selected by client ${clientId} in room ${roomName}`);
     });
 });
 

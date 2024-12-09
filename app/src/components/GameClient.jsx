@@ -7,6 +7,7 @@ import BettingInput from './BettingInput';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { motion } from 'motion/react';
+import SelectPosition from './SelectPosition';
 
 const GameClient = ({isDevMode}) => {
     const [socket, setSocket] = useState(null);
@@ -102,6 +103,10 @@ const GameClient = ({isDevMode}) => {
             setIsConnected(false); // Update state to reflect disconnection
         }
     };
+
+    const handleSelectPosition = (position) => {
+        socket.emit('selectPosition', { roomName, clientId, position });
+    }
 
     const rejoinRoom = (currentSocket, savedNickname, savedIsAdmin, savedClientId) => {
         currentSocket.emit('joinRoom', {
@@ -225,7 +230,7 @@ const GameClient = ({isDevMode}) => {
                         </>
                     }
                     {
-                        gamedata?.gamestate !== "lobby" &&
+                        gamedata?.gamestate !== "lobby" && gamedata?.gamestate !== "select_positions" &&
                         <>
                             <h2>Current Score: {gamedata?.players?.[clientId]?.score || 0}</h2>
                             {
@@ -246,6 +251,15 @@ const GameClient = ({isDevMode}) => {
                                 )
                             }
                         </>
+                    }
+                    {
+                        gamedata?.gamestate === "select_positions" &&
+                            <SelectPosition
+                                gamedata={gamedata}
+                                handleSubmit={handleSelectPosition}
+                                numPlayers={playerCount}
+                                isPlayersTurn={gamedata.positions.pickOrder[gamedata.positions.pickIndex].id === clientId}
+                            />
                     }
                     {isAdmin && (<>
                         <div style={{textAlign: 'left', fontSize: '14px'}}>Gamedata: {gamedata ? <pre>{JSON.stringify(gamedata, null, 2)}</pre> : 'Waiting for updates...'}</div>

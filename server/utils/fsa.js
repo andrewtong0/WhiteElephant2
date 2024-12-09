@@ -10,6 +10,7 @@ const GAME_STATES = {
   SURVEY_QUESTION: "survey_question",
   FINAL_BETTING: "final_betting",
   FINAL_QUESTION: "final_question",
+  SELECT_POSITIONS: "select_positions",
 };
 
 // Function to get the next state
@@ -37,7 +38,7 @@ function getNextState(currentState, questionNum, totalQuestions) {
     case GAME_STATES.HALFTIME:
       return GAME_STATES.QUESTION;
     case GAME_STATES.GAME_END:
-      return GAME_STATES.GAME_END;
+      return GAME_STATES.SELECT_POSITIONS;
     case GAME_STATES.SURVEY_QUERY:
       return GAME_STATES.SURVEY_QUESTION;
     case GAME_STATES.SURVEY_QUESTION:
@@ -46,6 +47,8 @@ function getNextState(currentState, questionNum, totalQuestions) {
       return GAME_STATES.FINAL_QUESTION;
     case GAME_STATES.FINAL_QUESTION:
       return GAME_STATES.PRE_ANSWER;
+    case GAME_STATES.SELECT_POSITIONS:
+      return GAME_STATES.SELECT_POSITIONS;
     default:
       return GAME_STATES.LOBBY;
   }

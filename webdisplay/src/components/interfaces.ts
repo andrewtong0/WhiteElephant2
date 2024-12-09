@@ -10,6 +10,7 @@ export enum QuestionState {
   ANSWER = 'answer',
   HALFTIME = 'halftime',
   GAME_END = 'game_end',
+  SELECT_POSITIONS = 'select_positions',
 }
 
 export interface GradientColour {

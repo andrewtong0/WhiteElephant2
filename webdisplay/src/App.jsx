@@ -8,6 +8,7 @@ import GameTimer from './components/GameTimer/GameTimer';
 import IntermissionScores from './components/IntermissionScores/IntermissionScores';
 import { io } from 'socket.io-client';
 import { buildAnswersFromGamedata, buildQuestionFromGamedata, buildUsersFromGamedata } from './utils';
+import PickOrder from './components/PickOrder/PickOrder';
 
 const SAMPLE_ANSWERS_1 = [
   { answerValue: 10, type: QuestionType.NUMERIC, user: { name: "Xiaoxiang", id: "15", score: 0 }, pointsGained: 950, placement: 1 },
@@ -207,34 +208,34 @@ function App() {
           gamedata.gamestate === QuestionState.HALFTIME || gamedata.gamestate === QuestionState.GAME_END ?
             <IntermissionScores users={buildUsersFromGamedata(gamedata)} /> :
             <>
-            {
-              currQuestion !== null &&
-                <Grid container justifyContent="center" alignItems="center" spacing={4}>
-                  <Grid item xs={8}>
-                    <QuestionDisplay
-                      question={currQuestion}
-                      answers={currAnswer}
-                      displayAnswer={isDisplayingAnswer}
-                    />
+              { gamedata.gamestate !== QuestionState.SELECT_POSITIONS && currQuestion !== null ?
+                  <Grid container justifyContent="center" alignItems="center" spacing={4}>
+                    <Grid item xs={8}>
+                      <QuestionDisplay
+                        question={currQuestion}
+                        answers={currAnswer}
+                        displayAnswer={isDisplayingAnswer}
+                      />
+                    </Grid>
+                    <Grid item>
+                      <ScoreDisplay
+                        playerCount={playerCount}
+                        question={currQuestion}
+                        answers={currAnswer}
+                        displayAnswer={isDisplayingAnswer}
+                        correctAnswer={10}
+                      />
+                    </Grid>
+                  </Grid> :
+                  <PickOrder gamestate={gamedata} />
+              }
+              {
+                !isDisplayingAnswer && gamedata.shouldDisplayTimer &&
+                  <Grid justifyContent="center" alignItems="center" spacing={4} width={"100%"} style={{ paddingLeft: "100px" }}>
+                    <GameTimer initialSeconds={60} isTimerVisible={true} />
                   </Grid>
-                  <Grid item>
-                    <ScoreDisplay
-                      playerCount={playerCount}
-                      question={currQuestion}
-                      answers={currAnswer}
-                      displayAnswer={isDisplayingAnswer}
-                      correctAnswer={10}
-                    />
-                  </Grid>
-                </Grid>
-            }
-            {
-              !isDisplayingAnswer && gamedata.shouldDisplayTimer &&
-                <Grid justifyContent="center" alignItems="center" spacing={4} width={"100%"} style={{ paddingLeft: "100px" }}>
-                  <GameTimer initialSeconds={60} isTimerVisible={true} />
-                </Grid>
-            }
-          </>
+              }
+            </>
         }
       </header>
     </div>
