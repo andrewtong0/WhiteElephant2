@@ -7,10 +7,6 @@ interface IntermissionScoresProps {
   users: User[];
 }
 
-const removePadding = {
-  padding: 0
-}
-
 const IntermissionScores: React.FC<IntermissionScoresProps> = ({ users }) => {
   const sortedUsers = [...users].sort((a, b) => b.score - a.score);
 

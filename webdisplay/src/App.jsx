@@ -7,7 +7,7 @@ import ScoreDisplay from './components/ScoreDisplay/ScoreDisplay';
 import GameTimer from './components/GameTimer/GameTimer';
 import IntermissionScores from './components/IntermissionScores/IntermissionScores';
 import { io } from 'socket.io-client';
-import { buildAnswersFromGamedata, buildQuestionFromGamedata } from './utils';
+import { buildAnswersFromGamedata, buildQuestionFromGamedata, buildUsersFromGamedata } from './utils';
 
 const SAMPLE_ANSWERS_1 = [
   { answerValue: 10, type: QuestionType.NUMERIC, user: { name: "Xiaoxiang", id: "15", score: 0 }, pointsGained: 950, placement: 1 },
@@ -204,8 +204,8 @@ function App() {
     <div className="App">
       <header className="App-header">
         {
-          gamedata.gameState === QuestionState.HALFTIME ?
-            <IntermissionScores users={USERS} /> :
+          gamedata.gamestate === QuestionState.HALFTIME || gamedata.gamestate === QuestionState.GAME_END ?
+            <IntermissionScores users={buildUsersFromGamedata(gamedata)} /> :
             <>
             {
               currQuestion !== null &&

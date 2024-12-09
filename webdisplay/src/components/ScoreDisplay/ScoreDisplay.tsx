@@ -3,6 +3,7 @@ import { Answer, Question, QuestionType } from '../interfaces';
 import DisplayPointTotals from './AnswerDisplay/DisplayPointTotals';
 import PotentialPointsMultipleChoice from './PotentialPoints/PotentialPointsMultipleChoice';
 import PotentialPointsNumeric from './PotentialPoints/PotentialPointsNumeric';
+import { DisplayFinalPointTotals } from './AnswerDisplay/DisplayFinalPointTotals';
 
 interface ScoreDisplayProps {
   playerCount: number;
@@ -35,7 +36,12 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({playerCount, question, answe
   const renderPotentialPoints = () => {
     switch (question.type) {
       case QuestionType.NUMERIC:
-        return <PotentialPointsNumeric pointScale={generateNumericPointScale()}/>;
+        // @ts-ignore
+        if (question?.questionSubtype === "final") {
+          return <DisplayFinalPointTotals playerCount={playerCount}/>;
+        } else {
+          return <PotentialPointsNumeric pointScale={generateNumericPointScale()}/>;
+        }
       case QuestionType.MULTIPLE_CHOICE:
         return <PotentialPointsMultipleChoice pointsForRightAnswer={300} pointsForWrongAnswer={0} />;
       default:

@@ -20,6 +20,8 @@ export const buildQuestionFromGamedata = (gamedata: any): Question | null => {
       backgroundColor: backgroundColor,
       lowerLimit: gamedata.currQuestion.potentialAnswers.start,
       upperLimit: gamedata.currQuestion.potentialAnswers.end,
+      // @ts-ignore
+      questionSubtype: gamedata.currQuestion?.questionSubtype,
     };
   } else if (type === QuestionType.MULTIPLE_CHOICE) {
     return {
@@ -73,13 +75,15 @@ export const buildAnswersFromGamedata = (
   });
 }
 
-const buildUsersFromGamedata = (gamedata: any): User[] => {
+export const buildUsersFromGamedata = (gamedata: any): User[] => {
   if (gamedata.players === null || gamedata.players === undefined) return []
-
-  return Object.keys(gamedata.players).map((clientId) => {
+  const players: any[] = Object.keys(gamedata?.players)?.filter((clientId: string) => {
+    return !gamedata.players[clientId].isAdmin
+  }) || [];
+  return players.map((clientId) => {
     const player = gamedata.players[clientId];
     return {
-      id: player.id,
+      id: clientId,
       name: player.nickname,
       score: player.score,
     };

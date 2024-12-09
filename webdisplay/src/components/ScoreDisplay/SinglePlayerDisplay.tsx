@@ -26,7 +26,7 @@ const SinglePlayerDisplay: React.FC<SinglePlayerDisplayProps> = ({ answer, quest
       >
         {
           questionType === QuestionType.NUMERIC &&
-            <Grid item style={{ fontSize: "20px" }}>{answer.placement}</Grid>
+            <Grid item style={{ fontSize: "20px" }}>#{answer.placement}</Grid>
         }
         <Grid item style={{ padding: "0 15px" }}>{answer.user.name}</Grid>
         <Grid item style={{ fontSize: "20px" }}>{answer.answerValue}</Grid>

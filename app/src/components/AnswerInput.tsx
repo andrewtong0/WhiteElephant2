@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Grid, Input, Slider, TextField } from '@mui/material';
+import { RANDOM_QUIPS } from './constants';
 
 interface AnswerInputProps {
   gamedata: any;
@@ -8,43 +9,75 @@ interface AnswerInputProps {
 
 const AnswerInput = ({ gamedata, handleSubmit }: AnswerInputProps) => {
   const { currQuestion } = gamedata;
-  const [answer, setAnswer] = useState<number | string>(0);
+  const [answerSubmitted, setAnswerSubmitted] = useState(false);
+  const [answer, setAnswer] = useState<number | string | null>(null);
+  const [quipText, setQuipText] = useState('');
+  const [quipImgSrc, setQuipImgSrc] = useState('');
 
   useEffect(() => {
     setAnswer("");
+    getRandomQuip();
   }, [])
+
+  const getRandomQuip = () => {
+    const randomIndex = Math.floor(Math.random() * RANDOM_QUIPS.length);
+    // const randomIndex = RANDOM_QUIPS.length - 1;
+    setQuipText(RANDOM_QUIPS[randomIndex].text);
+    setQuipImgSrc(RANDOM_QUIPS[randomIndex].img);
+  }
 
   const handleAnswerSubmit = () => {
     handleSubmit(answer);
+    setAnswerSubmitted(true);
+    getRandomQuip();
   };
+
+  const handleSubmitWithValue = (value: any) => {
+    handleSubmit(value);
+    setAnswerSubmitted(true);
+    getRandomQuip();
+  }
 
   return (
     <div>
-      <h3>Submit Your Answer</h3>
-      <div>Your Answer: {answer}</div>
+      {
+        !answerSubmitted ? (
+          <>
+            {currQuestion.questionType === 'multiple_choice' &&(
+              <MultipleChoiceQuestion
+                setAnswer={setAnswer}
+                handleSubmit={handleSubmitWithValue}
+                options={currQuestion.potentialAnswers}
+              />
+            )}
 
-      {currQuestion.questionType === 'multiple_choice' && (
-        <MultipleChoiceQuestion
-          answer={answer}
-          setAnswer={setAnswer}
-          handleSubmit={handleSubmit}
-          options={currQuestion.potentialAnswers}
-        />
-      )}
+            {currQuestion.questionType === 'numeric' && (
+              <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} handleSubmit={handleAnswerSubmit} />
+            )}
 
-      {currQuestion.questionType === 'numeric' && (
-        <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} />
-      )}
+            {currQuestion.questionType === 'survey' && (
+              <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} handleSubmit={handleAnswerSubmit} />
+            )}
 
-      {currQuestion.questionType === 'survey' && (
-        <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} />
-      )}
+            {currQuestion.questionType === 'survey_question' && (
+              <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} handleSubmit={handleAnswerSubmit} />
+            )}
+          </>
+        ) :
+        <div style={{ padding: "20px" }}>
+          <h3 style={{ marginBottom: "50px" }}>
+            Answer Submitted!
+          </h3>
+          {
+            <div style={{ marginTop: "21px" }}>
+              <div style={{ marginBottom: "10px", opacity: 0.5 }}>{quipText}</div>
+              <img style={{ width: "120px"}} src={quipImgSrc} />
+            </div>
+          }
+        </div>
+      }
 
-      {currQuestion.questionType === 'survey_question' && (
-        <NumericQuestion gamedata={gamedata} answer={answer} setAnswer={setAnswer} />
-      )}
-
-      <button onClick={handleAnswerSubmit}>Submit Answer</button>
+      {/* <button onClick={handleAnswerSubmit}>Submit Answer</button> */}
     </div>
   );
 };
@@ -52,8 +85,7 @@ const AnswerInput = ({ gamedata, handleSubmit }: AnswerInputProps) => {
 interface MultipleChoiceProps {
   options: string[];
   setAnswer: (value: string) => void;
-  handleSubmit: (value: string) => void;
-  answer: string | number;
+  handleSubmit: (value: any) => void;
 }
 
 const MultipleChoiceQuestion = ({
@@ -71,6 +103,7 @@ const MultipleChoiceQuestion = ({
           }}
           variant="contained"
           fullWidth
+          style={{ marginTop: "5px" }}
         >
           {option}
         </Button>
@@ -81,11 +114,12 @@ const MultipleChoiceQuestion = ({
 
 interface NumericProps {
   gamedata: any;
-  answer: number | string;
+  answer: number | string | null;
   setAnswer: (value: number) => void;
+  handleSubmit: () => void;
 }
 
-const NumericQuestion = ({ gamedata, answer, setAnswer }: NumericProps) => {
+const NumericQuestion = ({ gamedata, answer, setAnswer, handleSubmit }: NumericProps) => {
   const lowerBound = gamedata.currQuestion?.potentialAnswers?.start || 0;
   const upperBound = gamedata.currQuestion?.potentialAnswers?.end || 0;
 
@@ -105,7 +139,7 @@ const NumericQuestion = ({ gamedata, answer, setAnswer }: NumericProps) => {
   };
 
   return (
-    <div>
+    <div style={{ padding: "50px" }}>
       <Slider
         value={typeof answer === 'number' ? answer : 0}
         onChange={handleSliderChange}
@@ -113,19 +147,29 @@ const NumericQuestion = ({ gamedata, answer, setAnswer }: NumericProps) => {
         min={lowerBound}
         max={upperBound}
       />
-      <TextField
-        value={answer}
-        size="small"
-        onChange={handleInputChange}
-        onBlur={handleBlur}
-        inputProps={{
-          step: 1,
-          min: lowerBound,
-          max: upperBound,
-          type: 'number',
-          'aria-labelledby': 'input-slider',
-        }}
-      />
+      <div>
+        <div style={{ opacity: 0.7, fontSize: "14px", marginBottom: "10px" }}>
+          (You can type your answer below instead of using the slider for higher granularity)
+        </div>
+        <TextField
+          value={answer}
+          size="small"
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          inputProps={{
+            step: 1,
+            min: lowerBound,
+            max: upperBound,
+            type: 'number',
+            'aria-labelledby': 'input-slider',
+            style: { textAlign: "center" }
+          }}
+          fullWidth
+        />
+      </div>
+      <Button variant="contained" onClick={handleSubmit} fullWidth style={{ marginTop: "10px" }}>
+        Submit Answer
+      </Button>
     </div>
   );
 };

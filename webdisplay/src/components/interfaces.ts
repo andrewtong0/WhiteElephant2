@@ -8,7 +8,8 @@ export enum QuestionState {
   QUESTION = 'question',
   PRE_ANSWER = 'pre_answer',
   ANSWER = 'answer',
-  HALFTIME = 'half_time',
+  HALFTIME = 'halftime',
+  GAME_END = 'game_end',
 }
 
 export interface GradientColour {

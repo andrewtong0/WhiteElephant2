@@ -14,7 +14,7 @@ const DISPLAY_POINT_TOITALS_DELAY = 2;
 
 const DisplayPointTotals: React.FC<DisplayPointTotalsProps> = ({ answers, questionType }) => {
   const renderAnswers = () => {
-    const sortedAnswers = [...answers].sort((a, b) => b.pointsGained - a.pointsGained);
+    const sortedAnswers = [...answers].sort((a, b) => a.placement - b.placement);
     return (
       <Grid container direction="row" spacing={0.25}>
         <Grid item>

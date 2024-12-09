@@ -2,9 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import AnswerInput from './AnswerInput';
 import { ThemeProvider } from '@emotion/react';
-import { Button, Checkbox, createTheme } from '@mui/material';
+import { Button, Checkbox, createTheme, Grid, IconButton, Modal, TextField } from '@mui/material';
+import BettingInput from './BettingInput';
+import SettingsIcon from '@mui/icons-material/Settings';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { motion } from 'motion/react';
 
-const GameClient = () => {
+const GameClient = ({isDevMode}) => {
     const [socket, setSocket] = useState(null);
     const [nickname, setNickname] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
@@ -14,11 +18,15 @@ const GameClient = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState(null);
     const [timerCheckbox, setTimerCheckbox] = useState(false);
+    const [isDevSettingsOpen, setIsDevSettingsOpen] = useState(false);
+    const [devSettingsPassword, setDevSettingsPassword] = useState('');
+    const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
 
     const roomName = 'gameRoom1';
+    const correctDevSettingsPassword = 'thisShouldNotBeStoredInPlainTextBudIdc';
 
     useEffect(() => {
-        const newSocket = io();
+        const newSocket = isDevMode ? io() : io('192.9.150.5:5000');
         setSocket(newSocket);
 
         newSocket.on('connect', () => {
@@ -68,6 +76,14 @@ const GameClient = () => {
             alert('Please enter an answer before submitting.');
         }
     };
+
+    const handleWagerSubmit = (pointWager) => {
+        if (pointWager !== null && pointWager !== undefined && pointWager !== '') {
+            socket.emit('submitWager', { roomName, clientId, pointWager });
+        } else {
+            alert('Please enter a wager before submitting.');
+        }
+    }
 
     const handleJoinRoom = () => {
         if (nickname.trim()) {
@@ -125,17 +141,111 @@ const GameClient = () => {
 
     return (
         <ThemeProvider theme={darkTheme}>
-            <h1>React Socket.IO Client</h1>
+            <Grid container spacing={2} alignItems="center" justifyContent="space-between" alignContent={"center"}>
+                <Grid item xs={isConnected ? 2 : 1}>
+                    <IconButton onClick={() => setIsDevSettingsOpen(true)}>
+                        <SettingsIcon />
+                    </IconButton>
+                </Grid>
+                <Grid item xs={isConnected ? 8 : 11}>
+                    <h2>2024 White Elephant Event</h2>
+                </Grid>
+                {
+                    isConnected &&
+                    <Grid item xs={2}>
+                        <IconButton variant="contained" onClick={() => setIsLogoutConfirmationOpen(true)}>
+                            <LogoutIcon />
+                        </IconButton>
+                    </Grid>
+                }
+            </Grid>
+            <Modal
+                open={isLogoutConfirmationOpen}
+                onClose={() => setIsLogoutConfirmationOpen(false)}
+                sx={{ '& .MuiBackdrop-root': { backgroundColor: 'rgba(0, 0, 0, 0.8)' } }}
+            >
+                <div style={{
+                    padding: "40px",
+                    color: "white",
+                    textAlign: "center",
+                }}>
+                    <p>Are you sure you want to logout?</p>
+                    <Button onClick={() => setIsLogoutConfirmationOpen(false)} variant="contained" fullWidth style={{ marginTop: "10px" }}>Cancel</Button>
+                    <Button onClick={() => {
+                        handleDisconnect()
+                        setIsLogoutConfirmationOpen(false)
+                    }} variant='contained' color="error" fullWidth style={{ marginTop: "10px" }}>Logout</Button>
+                </div>
+            </Modal>
+            <Modal
+                open={isDevSettingsOpen}
+                onClose={() => setIsDevSettingsOpen(false)}
+                sx={{ '& .MuiBackdrop-root': { backgroundColor: 'rgba(0, 0, 0, 0.8)' } }}
+            >
+                <div style={{
+                    padding: "40px",
+                    color: "white",
+                }}>
+                    {
+                        devSettingsPassword === correctDevSettingsPassword ? (
+                            <div>
+                                <Checkbox
+                                    checked={isAdmin}
+                                    onChange={(e) => setIsAdmin(e.target.checked)}
+                                />
+                                Join as Admin
+                            </div>
+                        ) : (
+                            <div>
+                                <div style={{ textAlign: 'center', marginBottom: "20px" }}>
+                                    <p style={{ fontWeight: 700, fontSize: '24px' }}>Developer Settings</p>
+                                    <p>(Please don't guess this password because if you do, things might break and I will cry. As a peace offering, here is a picture of a cute cat.)</p>
+                                    <img style={{ width: "150px" }} src="https://preview.redd.it/af446nff4fq51.jpg?width=640&crop=smart&auto=webp&s=4f109ac392afe60a99674e6ebd1ff75df4719b5b" />
+                                </div>
+                                <TextField
+                                    label="Password"
+                                    type="password"
+                                    value={devSettingsPassword}
+                                    onChange={(e) => setDevSettingsPassword(e.target.value)}
+                                    style={{ marginBottom: "10px" }}
+                                    fullWidth
+                                />
+                            </div>
+                        )
+                    }
+                </div>
+            </Modal>
             {isConnected ? (
                 <div>
-                    <p>Nickname: {nickname}</p>
-                    <p>Admin Status: {isAdmin ? 'Admin' : 'Player'}</p>
-                    <p>Client ID: {clientId || 'Waiting for ID...'}</p>
-                    <p>Score: {gamedata?.scores?.[clientId] || 0}</p>
                     {
-                        gamedata?.questionPointGain?.[clientId] !== undefined && (
-                            <p style={{ color: gamedata?.questionPointGain?.[clientId].questionPointGain > 0 ? 'green' : 'red' }}>+{gamedata?.questionPointGain?.[clientId].questionPointGain}</p>
-                        )
+                        gamedata?.gamestate === "lobby" &&
+                        <>
+                            <p>Welcome {nickname}!</p>
+                            <p>We'll get started soon, so please sit tight!</p>
+                        </>
+                    }
+                    {
+                        gamedata?.gamestate !== "lobby" &&
+                        <>
+                            <h2>Current Score: {gamedata?.players?.[clientId]?.score || 0}</h2>
+                            {
+                                gamedata?.questionPointGain?.[clientId] !== undefined && (
+                                    <motion.div
+                                        animate={{ opacity: [0, 1], y: [-100, 0] }}
+                                        transition={{ duration: 1 }}
+                                    >
+                                        <p style={{
+                                            fontSize: "50px",
+                                            color: gamedata?.questionPointGain?.[clientId].questionPointGain > 0 ? 'green' : 'red',
+                                            transition: 'opacity 0.5s ease-in-out',
+                                            opacity: gamedata?.questionPointGain?.[clientId] === undefined ? 0 : 1,
+                                        }}>
+                                            +{gamedata?.questionPointGain?.[clientId].questionPointGain}
+                                        </p>
+                                    </motion.div>
+                                )
+                            }
+                        </>
                     }
                     {isAdmin && (<>
                         <div style={{textAlign: 'left', fontSize: '14px'}}>Gamedata: {gamedata ? <pre>{JSON.stringify(gamedata, null, 2)}</pre> : 'Waiting for updates...'}</div>
@@ -157,35 +267,28 @@ const GameClient = () => {
                         </div>
                     </>)}
                     {error && <p style={{ color: 'red' }}>{error}</p>}
-                    <div>
-                        <Button fullWidth variant="contained" onClick={handleDisconnect}>Disconnect and Remove</Button>
-                    </div>
                     {
-                        (gamedata?.gamestate === "question" || gamedata?.gamestate === "survey_query" || gamedata?.gamestate === "survey_question") && !isAdmin && (
-                            <AnswerInput gamedata={gamedata} handleSubmit={handleSubmit} />
+                        (gamedata?.gamestate === "question" || gamedata?.gamestate === "survey_query" || gamedata?.gamestate === "survey_question" || gamedata?.gamestate === "final_question") && !isAdmin && (
+                            <AnswerInput key={gamedata?.gamestate} gamedata={gamedata} handleSubmit={handleSubmit} />
+                        )
+                    }
+                    {
+                        gamedata?.gamestate === 'final_betting' && !isAdmin && (
+                            <BettingInput numPoints={gamedata?.players?.[clientId]?.score} handleWagerSubmit={handleWagerSubmit} />
                         )
                     }
                 </div>
             ) : (
                 <div>
-                    <input
+                    <p>Hosted by the US SOCFI team!</p>
+                    <TextField
                         type="text"
-                        placeholder="Enter your nickname"
+                        placeholder="Enter a nickname!"
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
                     />
-                    <div>
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={isAdmin}
-                                onChange={(e) => setIsAdmin(e.target.checked)}
-                            />
-                            Join as Admin
-                        </label>
-                    </div>
-                    <div>
-                        <Button onClick={handleJoinRoom} variant="contained">Join Game</Button>
+                    <div style={{ marginTop: "20px" }}>
+                        <Button onClick={handleJoinRoom} variant="contained" fullWidth>Join Game</Button>
                     </div>
                 </div>
             )}

@@ -1,19 +1,30 @@
+const QUESTION_TYPES = {
+    MULTIPLE_CHOICE: "multiple_choice",
+    NUMERIC: "numeric",
+    SURVEY: "survey",
+    FINAL: "final",
+};
+
+const QUESTION_SUBTYPES = {
+    FINAL: "final",
+};
+
 const questions = [
     {
         questionText: 'What is the capital of France?',
-        questionType: 'multiple_choice',
+        questionType: QUESTION_TYPES.MULTIPLE_CHOICE,
         potentialAnswers: ['Paris', 'London', 'Berlin', 'Madrid'],
         answer: 0,
     },
     {
         questionText: 'What is the largest planet in the solar system?',
-        questionType: 'multiple_choice',
+        questionType: QUESTION_TYPES.MULTIPLE_CHOICE,
         potentialAnswers: ['Jupiter', 'Saturn', 'Uranus', 'Neptune'],
         answer: 0,
     },
     {
         questionText: 'What is the atomic number of carbon?',
-        questionType: 'numeric',
+        questionType: QUESTION_TYPES.NUMERIC,
         potentialAnswers: {
             start: 0,
             end: 10,
@@ -22,7 +33,7 @@ const questions = [
     },
     {
         questionText: 'What would you rate the food at TikTok?',
-        questionType: 'survey',
+        questionType: QUESTION_TYPES.SURVEY,
         potentialAnswers: {
             start: 0,
             end: 10,
@@ -30,7 +41,7 @@ const questions = [
         answer: null,
         followupQuestion: {
             questionText: 'What is the AVERAGE rating of the TikTok food based on your responses?',
-            questionType: 'numeric',
+            questionType: QUESTION_TYPES.NUMERIC,
             potentialAnswers: {
                 start: 0,
                 end: 10,
@@ -38,5 +49,20 @@ const questions = [
             answer: null,
         },
     },
+    {
+        questionText: "SOCFI Random Lark Group",
+        questionType: QUESTION_TYPES.FINAL,
+        questionSubtype: QUESTION_SUBTYPES.FINAL,
+        followupQuestion: {
+            questionText: "In the SOCFI random group, we have a bot that reminds us to go for lunch. Including today, how many times has it sent this message?",
+            questionType: QUESTION_TYPES.NUMERIC,
+            questionSubtype: QUESTION_SUBTYPES.FINAL,
+            potentialAnswers: {
+                start: 0,
+                end: 700,
+            },
+            answer: 200,
+        }
+    }
 ];
-module.exports = {questions};
+module.exports = {questions, QUESTION_TYPES, QUESTION_SUBTYPES};
