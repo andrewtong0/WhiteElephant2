@@ -6,12 +6,14 @@ export enum QuestionType {
 }
 
 export enum QuestionState {
+  LOBBY = 'lobby',
   QUESTION = 'question',
   PRE_ANSWER = 'pre_answer',
   ANSWER = 'answer',
   HALFTIME = 'halftime',
   GAME_END = 'game_end',
   SELECT_POSITIONS = 'select_positions',
+  WAIT = 'wait',
 }
 
 export interface GradientColour {

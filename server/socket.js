@@ -1,16 +1,27 @@
 const express = require('express');
+const https = require('https');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const fs = require('fs');
 const { GAME_STATES, getNextState } = require('./utils/fsa');
 const { questions, QUESTION_TYPES, QUESTION_SUBTYPES } = require('./questionData/questions');
 
 // Initialize Express properties
 const port = 5000;
+const isDevMode = false;
+
+// Load SSL certificates
+const options = isDevMode ? {} :{
+    key: fs.readFileSync('ssl/privkey.pem'),
+    cert: fs.readFileSync('ssl/cert.pem'),
+    ca: fs.readFileSync('ssl/chain.pem')
+};
 
 // Define allowed origins
 const app = express();
-const server = http.createServer(app);
+const server = isDevMode ? http.createServer(app) : https.createServer(options, app);
+
 
 // const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
 // Custom CORS Middleware
@@ -218,6 +229,9 @@ io.on('connection', (socket) => {
     socket.on('disconnectAndRemove', ({ roomName, clientId }) => {
         if (rooms[roomName] && rooms[roomName].clients[clientId]) {
             delete rooms[roomName].clients[clientId];
+            if (rooms[roomName].gamedata.players[clientId]) {
+                delete rooms[roomName].gamedata.players[clientId];
+            }
             updatePlayerCount(roomName);
             console.log(`Client ${clientId} removed from room ${roomName}`);
         }
@@ -286,6 +300,7 @@ io.on('connection', (socket) => {
                 const realQuestion = currQuestion.followupQuestion;
                 const answers = rooms[roomName].gamedata?.questionData?.[`question_${questionIndex + 1}`]?.answers || {}
                 const surveyAnswer = consolidateAnswerFromNumericAnswers(answers);
+                console.log(`answers: ${JSON.stringify(answers)}`)
                 realQuestion.answer = surveyAnswer;
 
                 rooms[roomName].gamedata.currQuestion = realQuestion;

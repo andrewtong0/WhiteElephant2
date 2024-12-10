@@ -144,6 +144,7 @@ const USERS = [
 ]
 
 function App() {
+  const isDevMode = false;
   const { questions, answers, gameState } = GAME_DATA;
   const [socket, setSocket] = useState(null);
   const [hostId, setHostId] = useState(null);
@@ -155,7 +156,7 @@ function App() {
   const roomName = 'elephant';
 
   useEffect(() => {
-      const newSocket = io('http://localhost:5000');
+      const newSocket = isDevMode ? io('http://localhost:5000') : io('https://andrewtong.me:5000');
       // @ts-ignore
       setSocket(newSocket);
 
@@ -205,43 +206,65 @@ function App() {
     <div className="App">
       <header className="App-header">
         {
-          gamedata.gamestate === QuestionState.HALFTIME || gamedata.gamestate === QuestionState.GAME_END ?
-            <IntermissionScores users={buildUsersFromGamedata(gamedata)} /> :
-            <>
-              { gamedata.gamestate === QuestionState.SELECT_POSITIONS ?
-                  <PickOrder gamestate={gamedata} playerCount={playerCount} /> :
-                  <>
+          gamedata.gamestate === QuestionState.WAIT ?
+          <></> :
+          <>
+            {
+              gamedata.gamestate === QuestionState.HALFTIME || gamedata.gamestate === QuestionState.GAME_END ?
+                <IntermissionScores users={buildUsersFromGamedata(gamedata)} /> :
+                <>
+                  { gamedata.gamestate === QuestionState.SELECT_POSITIONS ?
+                      <PickOrder gamestate={gamedata} playerCount={playerCount} /> :
+                      <>
+                        {
+                          currQuestion !== null ?
+                            <Grid container justifyContent="center" alignItems="center" spacing={4}>
+                              <Grid item xs={8}>
+                                <QuestionDisplay
+                                  question={currQuestion}
+                                  answers={currAnswer}
+                                  displayAnswer={isDisplayingAnswer}
+                                />
+                              </Grid>
+                              <Grid item>
+                                <ScoreDisplay
+                                  playerCount={playerCount}
+                                  question={currQuestion}
+                                  answers={currAnswer}
+                                  displayAnswer={isDisplayingAnswer}
+                                  correctAnswer={10}
+                                />
+                              </Grid>
+                            </Grid> :
+                            <></>
+                        }
+                      </>
+                  }
+                  {
+                    !isDisplayingAnswer && gamedata.shouldDisplayTimer &&
+                      <Grid justifyContent="center" alignItems="center" spacing={4} width={"100%"} style={{ paddingLeft: "100px" }}>
+                        <GameTimer initialSeconds={60} isTimerVisible={true} />
+                      </Grid>
+                  }
+                </>
+            }
+            {
+              gamedata.gamestate === QuestionState.LOBBY &&
+                <div style={{ width: "1000px", fontFamily: "Rubik" }}>
+                  <div style={{ fontWeight: 700, fontSize: "40px", marginBottom: "20px" }}>
+                    Connected Players
+                  </div>
+                  <Grid container justifyContent="center" alignItems="center" spacing={4}>
                     {
-                      currQuestion !== null ?
-                        <Grid container justifyContent="center" alignItems="center" spacing={4}>
-                          <Grid item xs={8}>
-                            <QuestionDisplay
-                              question={currQuestion}
-                              answers={currAnswer}
-                              displayAnswer={isDisplayingAnswer}
-                            />
-                          </Grid>
-                          <Grid item>
-                            <ScoreDisplay
-                              playerCount={playerCount}
-                              question={currQuestion}
-                              answers={currAnswer}
-                              displayAnswer={isDisplayingAnswer}
-                              correctAnswer={10}
-                            />
-                          </Grid>
-                        </Grid> :
-                        <></>
+                      Object.keys(gamedata.players).filter((id) => !gamedata.players[id].isAdmin).map((id) => {
+                        const nickname = gamedata.players[id].nickname;
+                        return <Grid item key={id} xs={3}>{nickname}</Grid>
+                      })
                     }
-                  </>
-              }
-              {
-                !isDisplayingAnswer && gamedata.shouldDisplayTimer &&
-                  <Grid justifyContent="center" alignItems="center" spacing={4} width={"100%"} style={{ paddingLeft: "100px" }}>
-                    <GameTimer initialSeconds={60} isTimerVisible={true} />
                   </Grid>
-              }
-            </>
+                </div>
+            }
+          </>
         }
       </header>
     </div>

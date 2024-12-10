@@ -24,11 +24,12 @@ const GameClient = ({isDevMode}) => {
     const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [roomName, setRoomName] = useState('');
+    const [isJoining, setIsJoining] = useState(false);
 
     const correctDevSettingsPassword = 'thisShouldNotBeStoredInPlainTextBudIdc';
 
     useEffect(() => {
-        const newSocket = isDevMode ? io() : io('192.9.150.5:5000');
+        const newSocket = isDevMode ? io() : io('https://andrewtong.me:5000');
         setSocket(newSocket);
 
         newSocket.on('connect', () => {
@@ -91,6 +92,7 @@ const GameClient = ({isDevMode}) => {
 
     const handleJoinRoom = () => {
         if (nickname.trim() && roomName.trim()) {
+            setIsJoining(true);
             saveSessionData(nickname, isAdmin);
             socket.emit('joinRoom', { roomName, nickname, isAdmin, clientId: null });
         } else {
@@ -330,7 +332,11 @@ const GameClient = ({isDevMode}) => {
                         />
                     </div>
                     <div style={{ marginTop: "20px" }}>
-                        <Button onClick={handleJoinRoom} variant="contained" fullWidth>Join Game</Button>
+                        {
+                            isJoining ?
+                                <p>Joining game this might take a moment...</p> :
+                                <Button onClick={handleJoinRoom} variant="contained" fullWidth>Join Game</Button>
+                        }
                     </div>
                 </div>
             )}

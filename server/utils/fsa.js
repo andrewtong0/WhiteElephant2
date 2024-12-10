@@ -11,6 +11,7 @@ const GAME_STATES = {
   FINAL_BETTING: "final_betting",
   FINAL_QUESTION: "final_question",
   SELECT_POSITIONS: "select_positions",
+  WAIT: "wait",
 };
 
 // Function to get the next state
@@ -34,6 +35,8 @@ function getNextState(currentState, questionNum, totalQuestions) {
     case GAME_STATES.PRE_ANSWER:
       return GAME_STATES.ANSWER;
     case GAME_STATES.ANSWER:
+      return GAME_STATES.WAIT;
+    case GAME_STATES.WAIT:
       return GAME_STATES.QUESTION;
     case GAME_STATES.HALFTIME:
       return GAME_STATES.QUESTION;

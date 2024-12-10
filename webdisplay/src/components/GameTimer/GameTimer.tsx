@@ -65,7 +65,7 @@ const GameTimer: React.FC<GameTimerProps> = ({ initialSeconds, isTimerVisible })
             {seconds}
           </motion.h1>
           <motion.img
-            src="/loading.gif"
+            src="gifs/loading.gif"
             alt="Timer GIF"
             style={{ width: `${loadingIconSize}px`, height: `${loadingIconSize}px`, marginLeft: 10 }} // Adjust size and style as needed
             initial={{ opacity: 0 }}

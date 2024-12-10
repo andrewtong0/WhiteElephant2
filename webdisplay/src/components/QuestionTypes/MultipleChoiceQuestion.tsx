@@ -35,7 +35,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
             style={{
               border: '2px solid white',
               borderRadius: '10px',
-              padding: "80px",
+              padding: "50px",
               fontSize: "50px",
               fontWeight: 700,
             }}

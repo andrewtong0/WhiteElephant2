@@ -47,7 +47,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = (props: QuestionD
           animate={{ scale: [0, 1.1, 1] }}
           transition={{ duration: 0.4, delay: 0.5 }}
         >
-          <Typography variant="h2" align="center">
+          <Typography variant="h3" align="center" style={{ fontFamily: "Rubik" }}>
             {question.questionText}
           </Typography>
         </motion.div>

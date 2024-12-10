@@ -103,7 +103,7 @@ const MultipleChoiceQuestion = ({
           }}
           variant="contained"
           fullWidth
-          style={{ marginTop: "5px" }}
+          style={{ marginTop: "5px", fontSize: "20px" }}
         >
           {option}
         </Button>

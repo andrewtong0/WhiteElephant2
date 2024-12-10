@@ -47,7 +47,7 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({playerCount, question, answe
       case QuestionType.FINAL:
         return <DisplayFinalPointTotals playerCount={playerCount}/>;
       default:
-        return <>No question selected</>;
+        return <></>;
     }
   };
 

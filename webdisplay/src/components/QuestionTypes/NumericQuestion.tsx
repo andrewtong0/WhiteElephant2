@@ -67,7 +67,7 @@ export default function NumericQuestion(props: NumericQuestionProps) {
           marginTop: 100,
         }}
       >
-        <Typography variant="h5" style={{ transform: 'translateX(-50%)' }}>{question.lowerLimit}</Typography>
+        <Typography variant="h5" style={{ transform: 'translateX(-50%)', fontFamily: "Rubik" }}>{question.lowerLimit}</Typography>
       </motion.div>,
       <motion.div
         key={question.upperLimit}
@@ -83,7 +83,7 @@ export default function NumericQuestion(props: NumericQuestionProps) {
           marginTop: 100,
         }}
       >
-        <Typography variant="h5" style={{ transform: 'translateX(-50%)' }}>{question.upperLimit}</Typography>
+        <Typography variant="h5" style={{ transform: 'translateX(-50%)', fontFamily: "Rubik" }}>{question.upperLimit}</Typography>
       </motion.div>,
     ]
   }
@@ -118,7 +118,7 @@ export default function NumericQuestion(props: NumericQuestionProps) {
       return (
         <motion.div
           animate={{ opacity: [0, 1, 1, 0], scale: [0, 2, 2.2] }}
-          transition={{ duration: 0.5, delay: CORRECT_ANSWER_DISPLAY_DELAY + delay - 0.1 }}
+          transition={{ duration: 0.5, delay: CORRECT_ANSWER_DISPLAY_DELAY + delay }}
           style={{
             position: 'absolute',
             left: `calc(${calculateValAsPercentage(val) * 0.91}% + ${subtractLeftElements()}px)`,
@@ -133,7 +133,7 @@ export default function NumericQuestion(props: NumericQuestionProps) {
 
     return (
       <>
-        {renderPulseWithDelay(correctAnswer, 0)}
+        {renderPulseWithDelay(correctAnswer, answers.length * 0.1)}
         <motion.div
           key={correctAnswer}
           initial={{ opacity: 0 }}
@@ -158,7 +158,7 @@ export default function NumericQuestion(props: NumericQuestionProps) {
               backgroundColor: 'white',
             }}
           />
-          <Typography variant="h5">{correctAnswer}</Typography>
+          <Typography variant="h5" style={{ fontFamily: "Rubik" }}>{correctAnswer}</Typography>
         </motion.div>
       </>
     );
