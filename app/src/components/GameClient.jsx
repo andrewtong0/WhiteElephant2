@@ -22,8 +22,9 @@ const GameClient = ({isDevMode}) => {
     const [isDevSettingsOpen, setIsDevSettingsOpen] = useState(false);
     const [devSettingsPassword, setDevSettingsPassword] = useState('');
     const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [roomName, setRoomName] = useState('');
 
-    const roomName = 'gameRoom1';
     const correctDevSettingsPassword = 'thisShouldNotBeStoredInPlainTextBudIdc';
 
     useEffect(() => {
@@ -34,9 +35,10 @@ const GameClient = ({isDevMode}) => {
             const savedNickname = localStorage.getItem('nickname');
             const savedIsAdmin = localStorage.getItem('isAdmin') === 'true';
             const savedClientId = localStorage.getItem('clientId');
+            const savedRoomName = localStorage.getItem('roomName');
 
             if (savedNickname && savedClientId) {
-                rejoinRoom(newSocket, savedNickname, savedIsAdmin, savedClientId);
+                rejoinRoom(newSocket, savedRoomName, savedNickname, savedIsAdmin, savedClientId);
             }
         });
 
@@ -45,6 +47,7 @@ const GameClient = ({isDevMode}) => {
             setNickname(data.nickname);
             setIsAdmin(data.isAdmin);
             setIsConnected(true);
+            setRoomName(data.roomName);
         });
 
         return () => newSocket.disconnect();
@@ -87,11 +90,11 @@ const GameClient = ({isDevMode}) => {
     }
 
     const handleJoinRoom = () => {
-        if (nickname.trim()) {
+        if (nickname.trim() && roomName.trim()) {
             saveSessionData(nickname, isAdmin);
             socket.emit('joinRoom', { roomName, nickname, isAdmin, clientId: null });
         } else {
-            alert('Please enter a nickname.');
+            alert('Please enter a nickname and a roomcode.');
         }
     };
 
@@ -108,9 +111,9 @@ const GameClient = ({isDevMode}) => {
         socket.emit('selectPosition', { roomName, clientId, position });
     }
 
-    const rejoinRoom = (currentSocket, savedNickname, savedIsAdmin, savedClientId) => {
+    const rejoinRoom = (currentSocket, savedRoomName, savedNickname, savedIsAdmin, savedClientId) => {
         currentSocket.emit('joinRoom', {
-            roomName,
+            roomName: savedRoomName,
             nickname: savedNickname,
             isAdmin: savedIsAdmin,
             clientId: savedClientId,
@@ -120,6 +123,7 @@ const GameClient = ({isDevMode}) => {
     const saveSessionData = (nickname, isAdmin) => {
         localStorage.setItem('nickname', nickname);
         localStorage.setItem('isAdmin', isAdmin.toString());
+        localStorage.setItem('roomName', roomName);
     };
 
     const updateGamedata = () => {
@@ -129,6 +133,12 @@ const GameClient = ({isDevMode}) => {
                 clientId,
                 newData: { score: Math.floor(Math.random() * 100), status: 'running' },
             });
+        }
+    };
+
+    const resetGameData = () => {
+        if (socket && isConnected) {
+            socket.emit('resetGameData', { roomName, clientId });
         }
     };
 
@@ -279,6 +289,12 @@ const GameClient = ({isDevMode}) => {
                         <div style={{ marginBottom: '10px' }}>
                             <Button variant="contained" onClick={updateGamedata} fullWidth>Force Update Gamedata</Button>
                         </div>
+                        <div style={{ marginBottom: '10px' }}>
+                            <Button variant="contained" onClick={() => setIsResetModalOpen(true)} fullWidth color="error">Reset Game Data</Button>
+                            <Modal open={isResetModalOpen} onClose={() => setIsResetModalOpen(false)} sx={{ '& .MuiBackdrop-root': { backgroundColor: 'rgba(0, 0, 0, 0.8)' } }}>
+                                <Button variant="contained" onClick={() => resetGameData(roomName)} fullWidth color="error">Reset Game Data</Button>
+                            </Modal>
+                        </div>
                     </>)}
                     {error && <p style={{ color: 'red' }}>{error}</p>}
                     {
@@ -295,12 +311,24 @@ const GameClient = ({isDevMode}) => {
             ) : (
                 <div>
                     <p>Hosted by the US SOCFI team!</p>
-                    <TextField
-                        type="text"
-                        placeholder="Enter a nickname!"
-                        value={nickname}
-                        onChange={(e) => setNickname(e.target.value)}
-                    />
+                    <div>
+                        <TextField
+                            type="text"
+                            placeholder="Enter a nickname!"
+                            value={nickname}
+                            onChange={(e) => setNickname(e.target.value)}
+                            fullWidth
+                        />
+                    </div>
+                    <div style={{ marginTop: "10px" }}>
+                        <TextField
+                            type="text"
+                            placeholder="Enter the room code!"
+                            value={roomName}
+                            onChange={(e) => setRoomName(e.target.value)}
+                            fullWidth
+                        />
+                    </div>
                     <div style={{ marginTop: "20px" }}>
                         <Button onClick={handleJoinRoom} variant="contained" fullWidth>Join Game</Button>
                     </div>
@@ -311,3 +339,4 @@ const GameClient = ({isDevMode}) => {
 };
 
 export default GameClient;
+

@@ -44,6 +44,8 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({playerCount, question, answe
         }
       case QuestionType.MULTIPLE_CHOICE:
         return <PotentialPointsMultipleChoice pointsForRightAnswer={300} pointsForWrongAnswer={0} />;
+      case QuestionType.FINAL:
+        return <DisplayFinalPointTotals playerCount={playerCount}/>;
       default:
         return <>No question selected</>;
     }

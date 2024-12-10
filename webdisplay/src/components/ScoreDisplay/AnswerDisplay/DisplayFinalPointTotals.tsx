@@ -18,7 +18,7 @@ export const DisplayFinalPointTotals: React.FC<DisplayFinalPointTotalsProps> = (
       >
         <Grid container justifyContent="center" alignItems="center">
           <Grid item xs={12}>
-            {`Placements ${PLACEMENT_PREFIXES[0]} to ${PLACEMENT_PREFIXES[Math.max(Math.floor(playerCount / 2) - 1, 0)]}`}
+            {`Placements ${PLACEMENT_PREFIXES[0]} to ${PLACEMENT_PREFIXES[Math.max(Math.floor((playerCount / 2) - 1), 0)]}`}
           </Grid>
           <Grid item
             style={{

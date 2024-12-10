@@ -152,7 +152,7 @@ function App() {
   const [currQuestion, setCurrQuestion] = useState(null);
   const [currAnswer, setCurrAnswer] = useState(null);
   const isDisplayingAnswer = gamedata.gamestate === QuestionState.ANSWER;
-  const roomName = 'gameRoom1';
+  const roomName = 'elephant';
 
   useEffect(() => {
       const newSocket = io('http://localhost:5000');
@@ -208,26 +208,32 @@ function App() {
           gamedata.gamestate === QuestionState.HALFTIME || gamedata.gamestate === QuestionState.GAME_END ?
             <IntermissionScores users={buildUsersFromGamedata(gamedata)} /> :
             <>
-              { gamedata.gamestate !== QuestionState.SELECT_POSITIONS && currQuestion !== null ?
-                  <Grid container justifyContent="center" alignItems="center" spacing={4}>
-                    <Grid item xs={8}>
-                      <QuestionDisplay
-                        question={currQuestion}
-                        answers={currAnswer}
-                        displayAnswer={isDisplayingAnswer}
-                      />
-                    </Grid>
-                    <Grid item>
-                      <ScoreDisplay
-                        playerCount={playerCount}
-                        question={currQuestion}
-                        answers={currAnswer}
-                        displayAnswer={isDisplayingAnswer}
-                        correctAnswer={10}
-                      />
-                    </Grid>
-                  </Grid> :
-                  <PickOrder gamestate={gamedata} />
+              { gamedata.gamestate === QuestionState.SELECT_POSITIONS ?
+                  <PickOrder gamestate={gamedata} playerCount={playerCount} /> :
+                  <>
+                    {
+                      currQuestion !== null ?
+                        <Grid container justifyContent="center" alignItems="center" spacing={4}>
+                          <Grid item xs={8}>
+                            <QuestionDisplay
+                              question={currQuestion}
+                              answers={currAnswer}
+                              displayAnswer={isDisplayingAnswer}
+                            />
+                          </Grid>
+                          <Grid item>
+                            <ScoreDisplay
+                              playerCount={playerCount}
+                              question={currQuestion}
+                              answers={currAnswer}
+                              displayAnswer={isDisplayingAnswer}
+                              correctAnswer={10}
+                            />
+                          </Grid>
+                        </Grid> :
+                        <></>
+                    }
+                  </>
               }
               {
                 !isDisplayingAnswer && gamedata.shouldDisplayTimer &&

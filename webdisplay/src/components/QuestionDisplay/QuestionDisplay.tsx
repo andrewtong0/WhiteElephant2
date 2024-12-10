@@ -29,12 +29,19 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = (props: QuestionD
           answers={answers}
           displayAnswer={displayAnswer} />
       default:
-        return <>No question selected</>;
+        return <></>;
     }
   }
 
   return (
     <div>
+      {
+        question.type === QuestionType.FINAL && (
+          <div style={{ marginBottom: "10px", opacity: 0.5 }}>
+            Final Question Category
+          </div>
+        )
+      }
       <div style={{ marginBottom: "50px" }}>
         <motion.div
           animate={{ scale: [0, 1.1, 1] }}

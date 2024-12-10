@@ -2,6 +2,7 @@ export enum QuestionType {
   NUMERIC = 'numeric',
   MULTIPLE_CHOICE = 'multiple_choice',
   SURVEY = 'survey',
+  FINAL = 'final',
 }
 
 export enum QuestionState {

@@ -112,7 +112,10 @@ const updateScores = (roomName, questionNum) => {
             let pointsGained = 0;
             if (currQuestion?.questionSubtype === QUESTION_SUBTYPES.FINAL) {
                 const wager = rooms[roomName].gamedata.questionData[`question_${questionNum}`].pointWagers?.[clientId] || 0;
-                pointsGained = (currentRank < (Object.keys(players).length / 2)) ? (wager * 2) : 0;
+                const playerCount = Object.keys(rooms[roomName].clients).filter((clientId) => !rooms[roomName].clients[clientId].isAdmin).length;
+                const cutoff = Math.floor(playerCount / 2) - 1
+                console.log(`${currentRank} | ${cutoff} | ${wager}`);
+                pointsGained = (currentRank <= cutoff) ? (wager * 2) : 0;
             } else {
                 pointsGained = currentRank === 0 ? SCORE_VALUES.numeric : Math.max(1000 - (currentRank * 100) - 100, 0);
             }
@@ -141,6 +144,11 @@ io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id} | Num connections: ${io.of('/').sockets.size}`);
 
     socket.on('joinRoom', ({ roomName, nickname, isAdmin, clientId }) => {
+        console.log(`${roomName} | ${nickname} | ${isAdmin ? 'Admin' : 'Player'} | ${clientId ? 'Reconnecting' : 'New Connection'}`);
+        if (roomName !== "elephant") {
+            return;
+        }
+
         if (!rooms[roomName]) {
             rooms[roomName] = {
                 gamedata: {
@@ -158,6 +166,7 @@ io.on('connection', (socket) => {
         if (clientId && rooms[roomName].clients[clientId]) {
             clientData = rooms[roomName].clients[clientId];
             clientData.socketId = socket.id; // Update the socket ID
+            clientData.roomName = roomName;
             socket.emit('reconnected', clientData); // Send restored data
         } else {
             // New connection
@@ -217,6 +226,7 @@ io.on('connection', (socket) => {
     // Update gamedata object, admin only
     socket.on('updateGamedata', ({ roomName, clientId, newData }) => {
         const client = rooms[roomName]?.clients[clientId];
+        console.log(`${roomName}`)
         console.log(rooms[roomName]?.clients);
 
         if (client && client.isAdmin) {
@@ -274,7 +284,7 @@ io.on('connection', (socket) => {
                 const questionIndex = rooms[roomName].gamedata.questionNum - 1;
                 const currQuestion = questions[questionIndex];
                 const realQuestion = currQuestion.followupQuestion;
-                const answers = rooms[roomName].gamedata?.questionData?.[`question_${questionIndex}`]?.answers || {}
+                const answers = rooms[roomName].gamedata?.questionData?.[`question_${questionIndex + 1}`]?.answers || {}
                 const surveyAnswer = consolidateAnswerFromNumericAnswers(answers);
                 realQuestion.answer = surveyAnswer;
 
@@ -320,9 +330,9 @@ io.on('connection', (socket) => {
                 questionData[questionKey]["answers"] = {};
             }
 
-            console.log(JSON.stringify(questionData));
             questionData[questionKey]["answers"][clientId] = answer;
             rooms[roomName].gamedata.questionData = questionData;
+            console.log(JSON.stringify(questionData));
 
             io.to(roomName).emit('gamedataUpdated', rooms[roomName].gamedata);
 
@@ -361,6 +371,23 @@ io.on('connection', (socket) => {
 
         io.to(roomName).emit('gamedataUpdated', rooms[roomName].gamedata);
         console.log(`Position selected by client ${clientId} in room ${roomName}`);
+    });
+
+    socket.on('resetGameData', ({ roomName, clientId }) => {
+        if (rooms[roomName] && rooms[roomName]?.gamedata.players[clientId].isAdmin === true) {
+            rooms[roomName] = {
+                gamedata: {
+                    gamestate: GAME_STATES.LOBBY,
+                    questionNum: 0,
+                    players: {},
+                },
+                clients: {}
+            };
+            io.to(roomName).emit('gamedataUpdated', rooms[roomName].gamedata);
+            console.log(`Game data reset in room ${roomName}`);
+        } else {
+            console.log('Unauthorized game data reset attempt');
+        }
     });
 });
 
