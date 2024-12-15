@@ -9,7 +9,7 @@ const { questions, QUESTION_TYPES, QUESTION_SUBTYPES } = require('./questionData
 
 // Initialize Express properties
 const port = 5000;
-const isDevMode = false;
+const isDevMode = true;
 
 // Load SSL certificates
 const options = isDevMode ? {} :{

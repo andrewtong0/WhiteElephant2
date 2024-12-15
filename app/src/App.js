@@ -6,7 +6,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <GameClient isDevMode={false}/>
+        <GameClient isDevMode={true}/>
       </header>
     </div>
   );

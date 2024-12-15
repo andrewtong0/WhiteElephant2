@@ -144,7 +144,7 @@ const USERS = [
 ]
 
 function App() {
-  const isDevMode = false;
+  const isDevMode = true;
   const { questions, answers, gameState } = GAME_DATA;
   const [socket, setSocket] = useState(null);
   const [hostId, setHostId] = useState(null);
